@@ -140,54 +140,45 @@ class MOSSE:
         self.H[...,1] *= -1
 
 class App:
-    def __init__(self, video_src, paused = False):
-        self.cap = video.create_capture(video_src)
+    def __init__(self):
+        self.cap = video.create_capture()
         _, self.frame = self.cap.read()
-        cv2.imshow('frame', self.frame)
-        self.rect_sel = RectSelector('frame', self.onrect)
-        self.trackers = []
-        self.paused = paused
+        self.width = self.cap.get(3)
+        self.height = self.cap.get(4)
 
-    def onrect(self, rect):
+        cv2.imshow('frame', self.frame)
+        x0 = int((self.width/2)-40)
+        y0 = int((self.height/2)-40)
+        x1 = int((self.width/2)+40)
+        y1 = int((self.height/2)+40)
+        
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        tracker = MOSSE(frame_gray, rect)
-        self.trackers.append(tracker)
+        self.tracker = MOSSE(frame_gray, (x0,y0,x1,y1))
+        
+            
+
 
     def run(self):
         while True:
-            if not self.paused:
-                ret, self.frame = self.cap.read()
-                if not ret:
-                    break
-                frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-                for tracker in self.trackers:
-                    tracker.update(frame_gray)
+            ret, self.frame = self.cap.read()
+            if not ret:
+                break
+            frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            self.tracker.update(frame_gray)
+
 
             vis = self.frame.copy()
-            for tracker in self.trackers:
-                tracker.draw_state(vis)
-            if len(self.trackers) > 0:
-                cv2.imshow('tracker state', self.trackers[-1].state_vis)
-            self.rect_sel.draw(vis)
+
+            self.tracker.draw_state(vis)
 
             cv2.imshow('frame', vis)
             ch = cv2.waitKey(10)
             if ch == 27:
                 break
-            if ch == ord(' '):
-                self.paused = not self.paused
-            if ch == ord('c'):
-                self.trackers = []
+        
 
 
 if __name__ == '__main__':
-    print (__doc__)
-    import sys, getopt
-    opts, args = getopt.getopt(sys.argv[1:], '', ['pause'])
-    opts = dict(opts)
-    try:
-        video_src = args[0]
-    except:
-        video_src = '0'
 
-    App(video_src, paused = '--pause' in opts).run()
+
+    App().run()

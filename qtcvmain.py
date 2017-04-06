@@ -8,21 +8,37 @@ import mossetest as mosse
 import pidController as pid
 import thread
 from time import sleep
+import squareWave
+
 
 xError = 0
 yError = 0
+xFrequency = 0
+yFrequency = 0
 
+
+def generateWave(isX):
+    sq = squareWave.squareWave(isX)
+    while(1):
+        if(xFrequency!=0):
+            sq.run(xFrequency)
+
+    
 
 def updatePid(isX):
-    controller = pid.pid(sys.argv[1],sys.argv[2],sys.argv[3],isX)
+    controller = pid.pid(sys.argv[1],sys.argv[2],sys.argv[3])
     while(1):
         if(isX):
+            global xFrequency
             err = xError
-        else:
-            err = yError
-        print(controller.update(err))
-        sleep(1)        
+            xFrequency = controller.update(err)
 
+        else:
+            global yFrequency
+            err = yError
+            yFrequency = controller.update(err)
+        sleep(5)
+            
 class Gui(QtGui.QMainWindow):
     def __init__(self,parent=None):
         QtGui.QWidget.__init__(self,parent)
@@ -100,11 +116,10 @@ def main():
 #   ex.showFullScreen()
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    
     thread.start_new_thread(updatePid, (True,))
-    thread.start_new_thread(updatePid, (False,))
+    #thread.start_new_thread(updatePid, (False,))
+    thread.start_new_thread(generateWave, (True,))    
     
-
 
     sys.exit(app.exec_())
 

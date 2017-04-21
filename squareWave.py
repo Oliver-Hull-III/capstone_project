@@ -15,9 +15,9 @@ class squareWave:
     def run(self,frequency):
             
         if(frequency<0):
-            GPIO.output(self.direction_pin, GPIO.HIGH)
+            GPIO.output(self.direction_pin, GPIO.LOW)
         else:
-            GPIO.output(self.direction_pin, GPIO.LOW)            
+            GPIO.output(self.direction_pin, GPIO.HIGH)            
 
         frequency = abs(frequency)
         per = 1.0/frequency			#period is in seconds

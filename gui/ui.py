@@ -121,8 +121,7 @@ class Ui_MainWindow(object):
         print("up")
 
     def down(self, MainWindow):
-        GPIO.cleanup()
-
+        print("d")
     def startTracking(self, MainWindow):
         print("tracking")
 

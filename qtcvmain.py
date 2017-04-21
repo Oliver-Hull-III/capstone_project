@@ -9,7 +9,7 @@ import pidController as pid
 import thread
 from time import sleep
 import squareWave
-
+import RPi.GPIO as GPIO
 
 xError = 0
 yError = 0
@@ -18,9 +18,11 @@ yFrequency = 0
 
 
 def generateWave(isX):
+    GPIO.setmode(GPIO.BOARD)
     sq = squareWave.squareWave(isX)
     while(1):
         if(xFrequency!=0):
+            print(xFrequency)
             sq.run(xFrequency)
 
     
@@ -32,7 +34,7 @@ def updatePid(isX):
             global xFrequency
             err = xError
             xFrequency = controller.update(err)
-
+            
         else:
             global yFrequency
             err = yError

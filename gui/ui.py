@@ -55,6 +55,7 @@ class Button(QtGui.QPushButton):
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
+        self.MainWindow = MainWindow
         MainWindow.resize(800, 480)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -62,28 +63,20 @@ class Ui_MainWindow(object):
         self.videoFrame.setGeometry(QtCore.QRect(80, 0, 640, 480))
         self.videoFrame.setObjectName(_fromUtf8("videoFrame"))
         MainWindow.setCentralWidget(self.centralwidget)
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(step, GPIO.OUT)
-        GPIO.setup(direction, GPIO.OUT)
-        GPIO.setup(MS1, GPIO.OUT)
-        GPIO.setup(MS2, GPIO.OUT)
-        GPIO.setup(enable, GPIO.OUT)
-        GPIO.output(enable, GPIO.LOW)
-        GPIO.output(MS1, GPIO.LOW)
-        GPIO.output(MS2, GPIO.LOW)
+
  
         self.leftButton = QtGui.QPushButton('<-',MainWindow)
-        self.leftButton.clicked.connect(self.left)
+        self.leftButton.clicked.connect(self.MainWindow.left)
         self.leftButton.setGeometry(QtCore.QRect(620, 430,50,30))
         self.leftButton.setObjectName(_fromUtf8("leftButton"))
 
         self.downButton = QtGui.QPushButton('v',MainWindow)
-        self.downButton.clicked.connect(self.down)
+        self.downButton.clicked.connect(self.MainWindow.down)
         self.downButton.setGeometry(QtCore.QRect(675, 430,50,30))
         self.downButton.setObjectName(_fromUtf8("downButton"))
         
         self.rightButton = QtGui.QPushButton('->',MainWindow)
-        self.rightButton.clicked.connect(self.right)
+        self.rightButton.clicked.connect(self.MainWindow.right)
         self.rightButton.setGeometry(QtCore.QRect(730, 430,50,30))
         self.rightButton.setObjectName(_fromUtf8("rightButton"))
 
@@ -94,14 +87,11 @@ class Ui_MainWindow(object):
 
 
         self.trackingButton = QtGui.QPushButton('Start\nTracking',MainWindow)
-        self.trackingButton.clicked.connect(self.startTracking)
+        self.trackingButton.clicked.connect(self.MainWindow.startTracking)
         self.trackingButton.setGeometry(QtCore.QRect(20,400,80,60))
         self.trackingButton.setObjectName(_fromUtf8("trackingButton"))
 
-        #self.quitButton = QtGui.QPushButton('Quit',MainWindow)
-        #self.quitButton.clicked.connect(self.quit)
-        #self.quitButton.setGeometry(QtCore.QRect(20,355,40,40))
-        #self.quitButton.setObjectName(_fromUtf8("quitButton"))
+
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -111,17 +101,5 @@ class Ui_MainWindow(object):
         self.videoFrame.setText(QtGui.QApplication.translate("MainWindow", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
 
 
-    def left(self, MainWindow):
-        print("left")
 
-    def right(self, MainWindow):
-        print("right")
-
-    def up(self, MainWindow):
-        print("up")
-
-    def down(self, MainWindow):
-        print("d")
-    def startTracking(self, MainWindow):
-        print("tracking")
 

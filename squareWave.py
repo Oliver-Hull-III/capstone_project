@@ -7,8 +7,15 @@ from time import sleep
 class squareWave:
     def __init__(self,isX):
         GPIO.setmode(GPIO.BOARD)
-        self.square_pin = 40
-        self.direction_pin = 37
+        if not isX:
+            self.square_pin = 40        #yellow
+            self.direction_pin = 38     #blue
+            self.enable_pin = 36        #green
+        else:
+            self.square_pin = 37
+            self.direction_pin = 35
+            self.enable_pin = 33
+
         GPIO.setup(self.square_pin, GPIO.OUT)
         GPIO.setup(self.direction_pin, GPIO.OUT)
 

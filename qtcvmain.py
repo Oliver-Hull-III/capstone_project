@@ -2,7 +2,7 @@ import sys,os,time,signal
 import cv2
 import numpy as np
 from PyQt4 import QtGui, QtCore, Qt
-from gui.ui import Ui_MainWindow
+from ui import Ui_MainWindow
 import opencv_stuff.video as video
 import mossetest as mosse
 import pidController as pid
@@ -10,6 +10,7 @@ import thread
 from time import sleep
 import squareWave
 import RPi.GPIO as GPIO
+import qtcvmain
 
 xError = 0
 yError = 0
@@ -39,7 +40,7 @@ def updatePid(isX):
             global yFrequency
             err = yError
             yFrequency = controller.update(err)
-        sleep(5)
+        sleep(3)
             
 class Gui(QtGui.QMainWindow):
     def __init__(self,parent=None):
@@ -51,10 +52,12 @@ class Gui(QtGui.QMainWindow):
         
         self.x0 = int(self.cap.get(3) / 2)
         self.y0 = int(self.cap.get(4) / 2)
+        self.tracking = False
         
+
+
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
         self.tracker = mosse.MOSSE(frame_gray, (self.x0-40,self.y0-40,self.x0+40,self.y0+40))
-   
 
 
 
@@ -73,29 +76,28 @@ class Gui(QtGui.QMainWindow):
         self._timer.start(27)
         self.update()
 
-        
+    def startTracking(self):
+        frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        self.tracker = mosse.MOSSE(frame_gray, (self.x0-40,self.y0-40,self.x0+40,self.y0+40))
+        self.tracking = True
+
+    def stopTracking(self):
+        self.tracking = False
  
     def play(self):
         ret, self.frame=self.cap.read()
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
         self.tracker.update(frame_gray)
-
-
         vis = self.frame.copy()
-
-        if(self.tracker.pos[0]-self.x0):
-            direction = 0
-        else:
-            direction = 1
-        
-        self.tracker.draw_state(vis)
         global xError
         global yError
 
         xError = self.tracker.pos[0] - self.x0 
         yError = self.tracker.pos[1] - self.y0
 
-
+        if self.tracking:
+            self.tracker.draw_state(vis)
+            
         """     converts frame to format suitable for QtGui            """
 
         
@@ -119,9 +121,9 @@ def main():
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     thread.start_new_thread(updatePid, (True,))
-    #thread.start_new_thread(updatePid, (False,))
+    thread.start_new_thread(updatePid, (False,))
     thread.start_new_thread(generateWave, (True,))    
-    
+    thread.start_new_thread(generateWave, (False,))    
 
     sys.exit(app.exec_())
 

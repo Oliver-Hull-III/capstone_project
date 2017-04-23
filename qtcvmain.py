@@ -78,6 +78,10 @@ class Gui(QtGui.QMainWindow):
 
     def startTracking(self):
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        thread.start_new_thread(updatePid, (True,))
+        thread.start_new_thread(updatePid, (False,))
+        thread.start_new_thread(generateWave, (True,))    
+        thread.start_new_thread(generateWave, (False,))   
         self.tracker = mosse.MOSSE(frame_gray, (self.x0-40,self.y0-40,self.x0+40,self.y0+40))
         self.tracking = True
 
@@ -120,10 +124,7 @@ def main():
 #   ex.showFullScreen()
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    thread.start_new_thread(updatePid, (True,))
-    thread.start_new_thread(updatePid, (False,))
-    thread.start_new_thread(generateWave, (True,))    
-    thread.start_new_thread(generateWave, (False,))    
+ 
 
     sys.exit(app.exec_())
 

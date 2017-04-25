@@ -7,7 +7,9 @@ from time import sleep
 class squareWave:
     def __init__(self,isX):
         GPIO.setmode(GPIO.BOARD)
-        if not isX:
+        self.isX = isX
+
+        if isX:
             self.square_pin = 40        #yellow
             self.direction_pin = 38     #blue
             self.enable_pin = 36        #green
@@ -20,11 +22,17 @@ class squareWave:
         GPIO.setup(self.direction_pin, GPIO.OUT)
 
     def run(self,frequency):
-            
-        if(frequency<0):
-            GPIO.output(self.direction_pin, GPIO.LOW)
+        if(self.isX):    
+            if(frequency<0):
+                GPIO.output(self.direction_pin, GPIO.HIGH)
+            else:
+                GPIO.output(self.direction_pin, GPIO.LOW)            
         else:
-            GPIO.output(self.direction_pin, GPIO.HIGH)            
+            if(frequency<0):
+                GPIO.output(self.direction_pin, GPIO.LOW)
+            else:
+                GPIO.output(self.direction_pin, GPIO.HIGH)
+
 
         frequency = abs(frequency)
         per = 1.0/frequency			#period is in seconds

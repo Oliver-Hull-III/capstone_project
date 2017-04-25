@@ -16,21 +16,33 @@ xError = 0
 yError = 0
 xFrequency = 0
 yFrequency = 0
+tracking = False
+
 
 
 def generateWave(isX):
-    GPIO.setmode(GPIO.BOARD)
     sq = squareWave.squareWave(isX)
-    while(1):
-        if(xFrequency!=0):
-            print(xFrequency)
-            sq.run(xFrequency)
+    global tracking
+    while(tracking):
+        if(isX):
+            if(xFrequency!=0):
+                print(xFrequency)
+                sq.run(xFrequency)
+        else:
+            if(yFrequency!=0):
+                print(yFrequency)
+                sq.run(yFrequency)
+
+            
+
+    thread.exit()
 
     
 
 def updatePid(isX):
     controller = pid.pid(sys.argv[1],sys.argv[2],sys.argv[3])
-    while(1):
+    global tracking
+    while(tracking):
         if(isX):
             global xFrequency
             err = xError
@@ -41,11 +53,13 @@ def updatePid(isX):
             err = yError
             yFrequency = controller.update(err)
         sleep(3)
+
+    thread.exit()
             
 class Gui(QtGui.QMainWindow):
     def __init__(self,parent=None):
         QtGui.QWidget.__init__(self,parent)
-
+        self.outfile = open("y_error.txt",'w',0)
         self.cap = video.create_capture()
         _, self.frame = self.cap.read()
         self.currentFrame=np.array([])
@@ -77,17 +91,30 @@ class Gui(QtGui.QMainWindow):
         self.update()
 
     def startTracking(self):
+        global tracking
+        tracking = True
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        self.tracker = mosse.MOSSE(frame_gray, (self.x0-40,self.y0-40,self.x0+40,self.y0+40))
         thread.start_new_thread(updatePid, (True,))
         thread.start_new_thread(updatePid, (False,))
         thread.start_new_thread(generateWave, (True,))    
         thread.start_new_thread(generateWave, (False,))   
-        self.tracker = mosse.MOSSE(frame_gray, (self.x0-40,self.y0-40,self.x0+40,self.y0+40))
-        self.tracking = True
-
+        
     def stopTracking(self):
-        self.tracking = False
- 
+        global tracking
+        tracking = False
+        global xError, yError, xFrequency, yFrequency
+        xError = 0
+        yError = 0
+        xFrequency = 0
+        yFrequency = 0
+
+
+
+    #Need to set 2 ft/sec speed limit for the below functions
+    #Also need to set pin numbers (global)
+
+        
     def play(self):
         ret, self.frame=self.cap.read()
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -98,9 +125,10 @@ class Gui(QtGui.QMainWindow):
 
         xError = self.tracker.pos[0] - self.x0 
         yError = self.tracker.pos[1] - self.y0
-
-        if self.tracking:
+        global tracking
+        if tracking:
             self.tracker.draw_state(vis)
+
             
         """     converts frame to format suitable for QtGui            """
 
@@ -120,8 +148,8 @@ def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     app = QtGui.QApplication(sys.argv)
     ex = Gui()
-    ex.show()
-#   ex.showFullScreen()
+#   ex.show()
+    ex.showFullScreen()
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
  

@@ -1,7 +1,8 @@
 import sys
 import time        
         
-        
+maxFreq = 90
+     
 class pid:
     def __init__(self,Kp,Ki,Kd):
         
@@ -24,13 +25,22 @@ class pid:
         dt = self.cur_t - self.prev_t
         self.prev_t = self.cur_t
         
-
-        self.integral += error*dt
+        if self.previous_error > 0 and error < 0:
+            self.integral = 0
+        elif self.previous_error < 0 and error > 0:
+            self.integral = 0
+        else:
+            self.integral += error*dt
         self.derivative = (error - self.previous_error)/dt
         self.previous_error = error
         frequency = self.Kp*error + self.Ki*self.integral + self.Kd*self.derivative
 
+        if frequency > maxFreq:
+            return maxFreq
+        elif frequency < (-1 * maxFreq):
+            return -1 * maxFreq
 
+            
         return frequency   
 
      

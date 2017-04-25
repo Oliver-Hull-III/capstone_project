@@ -4,7 +4,18 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 from time import sleep
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BOARD)
+az_step = 40
+az_direction = 38
+el_step = 37
+el_direction = 35
 
+
+GPIO.setup(az_step, GPIO.OUT)
+GPIO.setup(az_direction, GPIO.OUT)
+GPIO.setup(el_step, GPIO.OUT)
+GPIO.setup(el_direction, GPIO.OUT)
 
 
 
@@ -15,26 +26,75 @@ class Button(QtGui.QPushButton):
         self.setAutoRepeatInterval(100) #change value to set speed 
         self.clicked.connect(self.handleClicked)
         self._state = 0
+        self.direction = args[0]
+
 
     def handleClicked(self):
         if self.isDown():
             if self._state == 0:
                 self._state = 1
-                self.setAutoRepeatInterval(10) 
+                self.setAutoRepeatInterval(10)
+                if(self.direction is '^'):
+                    GPIO.output(el_direction, GPIO.LOW)
+                    
+                elif(self.direction is 'v'):
+                    GPIO.output(el_direction, GPIO.HIGH)
 
+                elif(self.direction is '<'):
+                    GPIO.output(az_direction, GPIO.HIGH)
 
-                print 'pressed'
+                elif(self.direction is '>'):
+                    GPIO.output(az_direction, GPIO.LOW)
+                    
+
+                
             else:
-                self.setAutoRepeatInterval(1) 
-                print 'sent signal to motor'
+                self.setAutoRepeatInterval(4)
+                for i in range(0,10):
+                    if(self.direction is 'v' or self.direction is '^'):
+                        GPIO.output(el_step, GPIO.HIGH)
+                        sleep(.001)
+                        GPIO.output(el_step, GPIO.LOW)
+                    else:
+                        GPIO.output(az_step, GPIO.HIGH)
+                        sleep(.001)
+                        GPIO.output(az_step, GPIO.LOW)
+     
                 
         elif self._state == 1:
             self._state = 0
             self.setAutoRepeatInterval(10)
             print 'released'
         else:
-            print 'click'
+            if(self.direction is '^'):
+                GPIO.output(el_direction, GPIO.HIGH)
+                GPIO.output(el_step, GPIO.HIGH)
+                sleep(.001)
+                GPIO.output(el_step, GPIO.LOW)
 
+                
+            elif(self.direction is 'v'):
+                GPIO.output(el_direction, GPIO.LOW)
+                GPIO.output(el_step, GPIO.HIGH)
+                sleep(.001)
+                GPIO.output(el_step, GPIO.LOW)
+
+
+
+            elif(self.direction is '<'):
+                GPIO.output(az_direction, GPIO.HIGH)
+                GPIO.output(az_step, GPIO.HIGH)
+                sleep(.001)
+                GPIO.output(az_step, GPIO.LOW)
+
+
+            elif(self.direction is '>'):
+                GPIO.output(az_direction, GPIO.LOW)
+
+                GPIO.output(az_step, GPIO.HIGH)
+                sleep(.001)
+                GPIO.output(az_step, GPIO.LOW)
+    
 
 
 class Ui_MainWindow(object):
@@ -50,18 +110,15 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.tracking = False
  
-        self.leftButton = QtGui.QPushButton('<-',MainWindow)
-        self.leftButton.clicked.connect(self.left)
+        self.leftButton =Button('<',MainWindow)
         self.leftButton.setGeometry(QtCore.QRect(620, 430,50,30))
         self.leftButton.setObjectName(_fromUtf8("leftButton"))
 
-        self.downButton = QtGui.QPushButton('v',MainWindow)
-        self.downButton.clicked.connect(self.down)
+        self.downButton = Button('v',MainWindow)
         self.downButton.setGeometry(QtCore.QRect(675, 430,50,30))
         self.downButton.setObjectName(_fromUtf8("downButton"))
         
-        self.rightButton = QtGui.QPushButton('->',MainWindow)
-        self.rightButton.clicked.connect(self.right)
+        self.rightButton = Button('>',MainWindow)
         self.rightButton.setGeometry(QtCore.QRect(730, 430,50,30))
         self.rightButton.setObjectName(_fromUtf8("rightButton"))
 
@@ -75,11 +132,6 @@ class Ui_MainWindow(object):
         self.trackingButton.clicked.connect(self.startTracking)
         self.trackingButton.setGeometry(QtCore.QRect(20,400,80,60))
         self.trackingButton.setObjectName(_fromUtf8("trackingButton"))
-
-        #self.quitButton = QtGui.QPushButton('Quit',MainWindow)
-        #self.quitButton.clicked.connect(self.quit)
-        #self.quitButton.setGeometry(QtCore.QRect(20,355,40,40))
-        #self.quitButton.setObjectName(_fromUtf8("quitButton"))
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -89,17 +141,8 @@ class Ui_MainWindow(object):
         self.videoFrame.setText(QtGui.QApplication.translate("MainWindow", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
 
 
-    def left(self, MainWindow):
-        print("left")
+   
 
-    def right(self, MainWindow):
-        print("right")
-
-    def up(self, MainWindow):
-        print("up")
-
-    def down(self, MainWindow):
-        print("d")
     def startTracking(self, MainWindow):
         if self.tracking:
             self.trackingButton.setText("Stop\nTracking")
